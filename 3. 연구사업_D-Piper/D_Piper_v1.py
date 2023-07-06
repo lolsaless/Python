@@ -68,7 +68,7 @@ def bool_conv(x):
     
 # The first column (Fila[0]) contains the name of the variable
 # The third column (Fila[2]) contains the value of the variable
-with open('D_Piper_v1_options.txt', "r") as File_Opciones:
+with open("D_Piper_v1_options.txt", "r") as File_Opciones:
     csv = reader(File_Opciones, delimiter=";")
     for Registro in csv:
         # General Options:
