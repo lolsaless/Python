@@ -10,7 +10,7 @@ Tk().withdraw()
 
 # 모델 파일 경로 설정 (현재 스크립트가 있는 디렉토리 기준)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, '/Users/time/Documents/model/colony_detector_model.h5')
+model_path = os.path.join(BASE_DIR, '/Users/lol/Documents/GitHub/model/colony_detector_model.h5')
 
 # 학습된 모델 로드
 model = load_model(model_path)
