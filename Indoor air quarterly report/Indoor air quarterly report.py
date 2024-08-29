@@ -16,7 +16,7 @@ filtered_df['시설군'] = filtered_df['검체유형_x'].str.split('/').str[2]
 # Step 5: Select required columns
 selected_columns = [
     '의뢰기관', '시설군', '배출시설', '시설명', '채취장소_x', '시료명_x',
-    'PM-10', 'PM-2.5', 'CO2', 'Formaldehyde', '세균', 'Rn', '부적합항목', '확인일', '접수번호'
+    'PM10', 'PM2.5', 'CO2', '폼알데하이드', '부유세균', '라돈', '라돈(밀폐)', '벤젠', '톨루엔', '에틸벤젠', '자일렌', '스틸렌', '부적합항목', '확인일', '접수번호'
 ]
 extracted_df = filtered_df[selected_columns].copy()
 
@@ -25,12 +25,10 @@ rename_columns = {
     '의뢰기관': '시군명',
     '배출시설': '세부시설군',
     '채취장소_x': '주소',
-    'PM-10': '미세먼지(PM10)',
-    'PM-2.5': '초미세먼지(PM2.5)',
+    'PM10': '미세먼지(PM10)',
+    'PM2.5': '초미세먼지(PM2.5)',
     'CO2': '이산화탄소',
-    'Formaldehyde': '폼알데하이드',
-    '세균': '총부유세균',
-    'Rn': '라돈'
+    '부유세균': '총부유세균'
 }
 extracted_df.rename(columns=rename_columns, inplace=True)
 
