@@ -1,0 +1,1 @@
+pip3 list --outdated --format=columns | awk '{if (NR>2) print $1}' | xargs -n1 pip3 install -U
