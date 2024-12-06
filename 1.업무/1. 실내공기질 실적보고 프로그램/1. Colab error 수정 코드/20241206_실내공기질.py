@@ -1,12 +1,21 @@
 import pandas as pd
+from tkinter import Tk, filedialog
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
 
+# tkinter로 파일 선택창 표시 (실험노트 및 조회통계 파일 선택)
+Tk().withdraw()  # GUI 창을 숨김
+experiment_file_path = filedialog.askopenfilename(title="실험노트 파일을 선택하세요", filetypes=[("Excel files", "*.xlsx")])
+result_file_path = filedialog.askopenfilename(title="조회통계 파일을 선택하세요", filetypes=[("Excel files", "*.xlsx")])
+
+# 데이터를 읽어오기 (사용자가 선택한 실험노트, 조회통계 자료 excel 파일 경로 이용)
+data_df = pd.read_excel(experiment_file_path)
+result_df = pd.read_excel(result_file_path)
 
 # 데이터를 읽어오기(실험노트, 조회통계 자료 excel통합문서 양식으로 저장한 다음 저장)
-data_df = pd.read_excel('실험노트.xlsx')
-result_df = pd.read_excel('조회통계.xlsx')
+# data_df = pd.read_excel('실험노트.xlsx')
+# result_df = pd.read_excel('조회통계.xlsx')
 
 # '접수번호'를 기준으로 데이터 병합
 merged_df = pd.merge(data_df, result_df, on='접수번호', how='inner')
