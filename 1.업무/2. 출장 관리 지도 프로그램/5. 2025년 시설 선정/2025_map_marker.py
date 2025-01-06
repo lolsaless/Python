@@ -40,22 +40,17 @@ if "완료" not in df.columns:
 
 # 시설군별 색상 매핑
 facility_colors = {
-    "실내주차장": "red",  # 40
-    "지하역사": "gray",  # 11
-    "철도역사": "lightgray",  # 3
-    "의료기관": "darkorange",  # 78
-    "어린이집": "orange",  # 71
-    "산후조리원": "yellow",  # 13
-    "노인요양시설": "crimson",  # 120
-    "실내 어린이놀이시설": "lightblue",  # 3
-    "도서관": "skyblue",  # 4
-    "영화상영관": "blue",  # 10
-    "목욕장": "pink",  # 17
-    "박물관": "beige",  # 3
-    "장례식장": "lightgreen",  # 4
-    "학원": "teal",  # 1
-    "PC방": "mediumslateblue",  # 12
-    "대규모 점포": "green"  # 2
+    "실내주차장": "lightgray",    # 지원됨
+    "지하역사": "darkgreen",       # 지원됨
+    "의료기관": "lightblue",       # 지원됨
+    "어린이집": "orange",          # 지원됨
+    "산후조리원": "purple",         # 지원됨
+    "노인요양시설": "red",      # 지원됨
+    "실내 어린이놀이시설": "cadetblue",  
+    "도서관": "lightgreen",        
+    "영화상영관": "darkred",        
+    "목욕장": "pink",              # 지원됨
+    "학원": "blue"                 # 지원됨
 }
 
 
