@@ -1,0 +1,38 @@
+import pandas as pd
+
+# 엑셀 파일 로드
+file_path = '3.추출 데이터.xlsx'
+df = pd.read_excel(file_path, sheet_name='Sheet1')
+
+# 열 이름 변경
+rename_columns = {
+    '의뢰기관': '시군명',
+    '배출시설': '세부시설군',
+    '채취장소_x': '주소',
+    'PM10': '미세먼지(PM10)',
+    'PM2.5': '초미세먼지(PM2.5)',
+    'CO2': '이산화탄소',
+    '부유세균': '총부유세균',
+    '시료명_x': '시료명'
+}
+
+df.rename(columns=rename_columns, inplace=True)
+
+# '시설군'에서 '기존공동주택'과 '신축공동주택'만 필터링
+filtered_df = df[df['시설군'].isin(['기존공동주택', '신축공동주택'])]
+
+# 열 순서 정의 및 데이터 정렬
+desired_column_order = [
+    '시군명', '시설군', '시설명', '세부시설군', '주소', '시료명', '검사결과', '부적합항목', '접수일자',
+    '확인일', '접수번호_10자리', '접수번호', '채취지점', '미세먼지(PM10)', '초미세먼지(PM2.5)',
+    '이산화탄소', '폼알데하이드', '총부유세균', '일산화탄소','라돈', '라돈(밀폐)', '벤젠', '톨루엔',
+    '에틸벤젠', '자일렌', '스틸렌'
+]
+
+# 실제 데이터에 존재하는 열만 선택하도록 처리
+filtered_df = filtered_df[[col for col in desired_column_order if col in filtered_df.columns]]
+
+# 필터링된 데이터 출력 또는 저장
+filtered_df.to_excel('4.기존신축공동주택 데이터.xlsx', index=False)
+
+print(filtered_df)

@@ -1,0 +1,67 @@
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font
+
+# 두 개의 엑셀 파일 로드
+file_1 = '4.기존신축공동주택 데이터.xlsx'
+file_2 = '5.다중이용시설 데이터.xlsx'
+
+# 각 파일의 데이터를 불러옴
+df1 = pd.read_excel(file_1)
+df2 = pd.read_excel(file_2)
+
+# 1. 숫자 데이터를 올바른 형식으로 변환
+def convert_numeric_with_preservation(df, columns):
+    for col in columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce').combine_first(df[col])  # 숫자로 변환 가능한 값은 숫자로 변환, 나머지는 그대로 유지
+    return df
+
+# 변환할 열 리스트
+columns_to_convert = ['벤젠', '톨루엔', '에틸벤젠', '자일렌', '스틸렌']
+
+# 기존신축공동주택 시트 데이터에 변환 적용
+df1 = convert_numeric_with_preservation(df1, columns_to_convert)
+
+# 2. 확인일 변수를 날짜 형식으로 변환하고, 시간 제거 및 데이터프레임을 오름차순으로 정렬
+def sort_by_date(df, date_column):
+    # '확인일'을 날짜 형식으로 변환 (시간 제거)
+    df[date_column] = pd.to_datetime(df[date_column], errors='coerce').dt.date  # 날짜만 남기고 시간 제거
+    df = df.sort_values(by=date_column, ascending=True)  # 오름차순 정렬
+    return df
+
+# 확인일 기준 정렬 적용
+df1 = sort_by_date(df1, '확인일')
+df2 = sort_by_date(df2, '확인일')
+
+# 3. 다중이용시설 데이터에서 "접수번호" 변수 제거
+if '접수번호' in df2.columns:
+    df2 = df2.drop(columns=['접수번호'])
+
+# 결과를 하나의 엑셀 파일로 저장 (두 개의 시트에 각각 저장)
+output_file = '6.통합 데이터.xlsx'
+with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+    df2.to_excel(writer, sheet_name='다중이용시설', index=False)  # 결과를 시트1에 저장
+    df1.to_excel(writer, sheet_name='기존신축공동주택', index=False)  # 기존, 신축공동주택 데이터를 시트2에 저장
+
+# 저장된 엑셀 파일을 다시 불러옴
+wb = load_workbook(output_file)
+
+# 각 시트에 대해 서식 지정
+for sheet in wb.sheetnames:
+    ws = wb[sheet]
+
+    # 글자 크기를 10으로 설정
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.font = Font(size=10)
+
+    # 모든 열의 너비를 11로 고정
+    for col in ws.columns:
+        column = col[0].column_letter  # 열 이름 가져오기 (A, B, C...)
+        ws.column_dimensions[column].width = 11  # 열 너비 고정
+
+# 파일 저장
+wb.save(output_file)
+
+print("엑셀 파일이 서식과 함께 '6.통합 데이터.xlsx'로 저장되었습니다.")
