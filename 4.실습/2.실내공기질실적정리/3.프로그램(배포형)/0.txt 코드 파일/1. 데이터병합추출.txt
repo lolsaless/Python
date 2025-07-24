@@ -1,0 +1,38 @@
+import pandas as pd
+
+# 데이터를 읽어오기(실험노트, 조회통계 자료 excel통합문서 양식으로 저장한 다음 저장)
+data_df = pd.read_excel('실험노트.xlsx')
+result_df = pd.read_excel('조회통계.xlsx')
+
+# '접수번호'를 기준으로 데이터 병합
+merged_df = pd.merge(data_df, result_df, on='접수번호', how='inner')
+
+# 병합된 데이터를 Excel 파일로 저장
+merged_df.to_excel('1.병합 데이터.xlsx', index=False)
+
+# 병합 데이터에서 '실내공기질'이 포함된 데이터만 필터링
+filtered_df = merged_df[merged_df['검체유형_x'].str.contains('실내공기질', na=False)]
+
+# 필터링된 데이터 확인
+print(filtered_df.head())
+
+# 대기 제외, 실내공기질만 필터링된 데이터를 Excel 파일로 저장
+filtered_df.to_excel('2.실내공기질 필터링 데이터.xlsx', index=False)
+
+# '시설군' 컬럼 추가 (검체유형_x 열에서 파생)
+filtered_df['시설군'] = filtered_df['검체유형_x'].str.split('/').str[2]
+
+# 지정된 열 선택(필요한 변수만 추출)
+selected_columns = [
+    '의뢰기관', '시설군', '배출시설', '시설명', '채취장소_x', '시료명_x',
+    'PM10', 'PM2.5', 'CO2', '폼알데하이드', '부유세균', '일산화탄소', '라돈', '라돈(밀폐)', '벤젠', '톨루엔', '에틸벤젠', '자일렌', '스틸렌', '부적합항목', '확인일', '검사결과','접수번호', '접수일자'
+]
+
+# 해당 열만 포함된 새 DataFrame 생성
+extracted_df = filtered_df[selected_columns]
+
+# 필요한 경우, 데이터를 Excel 파일로 저장
+extracted_df.to_excel('3.추출 데이터.xlsx', index=False)
+
+# 데이터 확인
+print(extracted_df.head())

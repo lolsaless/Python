@@ -1,0 +1,74 @@
+Sub SplitDataByMonth()
+    Dim ws As Worksheet
+    Dim newWs As Worksheet
+    Dim lastRow As Long
+    Dim dateColIndex As Long
+    Dim headerRow As Range
+    Dim i As Long
+    Dim dateValue As String
+    Dim monthStr As String
+    Dim cell As Range
+    Dim monthDict As Object
+    Dim dataRow As Range
+    Dim key As Variant ' ← 수정된 부분
+
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    Set monthDict = CreateObject("Scripting.Dictionary")
+    
+    ' 제목행 범위
+    Set headerRow = ws.Rows(1)
+    
+    ' "출발일" 열 찾기
+    For Each cell In headerRow.Cells
+        If Trim(cell.Value) = "출발일" Then
+            dateColIndex = cell.Column
+            Exit For
+        End If
+    Next cell
+    
+    If dateColIndex = 0 Then
+        MsgBox "출발일 열을 찾을 수 없습니다."
+        Exit Sub
+    End If
+    
+    ' 마지막 행 찾기
+    lastRow = ws.Cells(ws.Rows.Count, dateColIndex).End(xlUp).Row
+    
+    ' 월별로 데이터 수집
+    For i = 2 To lastRow
+        dateValue = Trim(ws.Cells(i, dateColIndex).Value)
+        
+        If IsDate(dateValue) Then
+            monthStr = Format(CDate(dateValue), "mm") & "월"
+            
+            If Not monthDict.exists(monthStr) Then
+                monthDict.Add monthStr, New Collection
+            End If
+            
+            monthDict(monthStr).Add i ' 행 번호 저장
+        End If
+    Next i
+    
+    ' 각 월별 시트 생성 및 데이터 복사
+    For Each key In monthDict.Keys
+        On Error Resume Next
+        Application.DisplayAlerts = False
+        Worksheets(CStr(key)).Delete ' 기존 시트 삭제
+        Application.DisplayAlerts = True
+        On Error GoTo 0
+        
+        Set newWs = Worksheets.Add(After:=Worksheets(Worksheets.Count))
+        newWs.Name = key
+        
+        ' 제목행 복사
+        headerRow.Copy Destination:=newWs.Range("A1")
+        
+        ' 해당 월에 해당하는 행 복사
+        Dim r As Variant
+        For Each r In monthDict(key)
+            ws.Rows(r).Copy Destination:=newWs.Cells(newWs.Cells(Rows.Count, 1).End(xlUp).Row + 1, 1)
+        Next r
+    Next key
+    
+    MsgBox "월별 시트 생성 완료!"
+End Sub

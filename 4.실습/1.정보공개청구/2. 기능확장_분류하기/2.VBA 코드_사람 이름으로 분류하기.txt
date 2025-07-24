@@ -1,0 +1,57 @@
+Sub SplitDataByName()
+    Dim ws As Worksheet
+    Dim newWs As Worksheet
+    Dim lastRow As Long
+    Dim nameCol As Range
+    Dim cell As Range
+    Dim nameDict As Object
+    Dim nameValue As Variant ' ← 여기 수정
+    Dim headerRow As Range
+    Dim dataRange As Range
+
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' 원본 시트 이름
+    Set nameDict = CreateObject("Scripting.Dictionary")
+
+    ' 이름 열이 있는 전체 범위 (예: D열이 이름 열이면 D2:D마지막행)
+    lastRow = ws.Cells(ws.Rows.Count, "D").End(xlUp).Row
+    Set nameCol = ws.Range("D2:D" & lastRow) ' "이름" 열, 제목행 제외
+
+    ' 제목행 저장
+    Set headerRow = ws.Rows(1)
+
+    ' 중복 없이 이름 수집
+    For Each cell In nameCol
+        If Trim(cell.Value) <> "" Then
+            If Not nameDict.exists(Trim(cell.Value)) Then
+                nameDict.Add Trim(cell.Value), True
+            End If
+        End If
+    Next cell
+
+    ' 이름별로 시트 생성 및 데이터 복사
+    For Each nameValue In nameDict.Keys
+        On Error Resume Next
+        Application.DisplayAlerts = False
+        Worksheets(CStr(nameValue)).Delete ' 기존 시트 삭제
+        Application.DisplayAlerts = True
+        On Error GoTo 0
+
+        Set newWs = Worksheets.Add(After:=Worksheets(Worksheets.Count))
+        newWs.Name = Left(CStr(nameValue), 31) ' 시트명은 31자 제한
+
+        ' 제목행 복사
+        headerRow.Copy Destination:=newWs.Range("A1")
+
+        ' 해당 이름의 데이터 복사
+        Dim i As Long, pasteRow As Long
+        pasteRow = 2
+        For i = 2 To lastRow
+            If Trim(ws.Cells(i, "D").Value) = nameValue Then
+                ws.Rows(i).Copy Destination:=newWs.Rows(pasteRow)
+                pasteRow = pasteRow + 1
+            End If
+        Next i
+    Next nameValue
+
+    MsgBox "이름별 시트 생성 완료!"
+End Sub

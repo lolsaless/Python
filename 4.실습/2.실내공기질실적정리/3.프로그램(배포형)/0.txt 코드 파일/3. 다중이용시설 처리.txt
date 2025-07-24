@@ -1,0 +1,64 @@
+import pandas as pd
+
+# 데이터 파일 로드
+file_path = '3.추출 데이터.xlsx'
+data = pd.read_excel(file_path)
+
+# 열 이름 변경
+rename_columns = {
+    '의뢰기관': '시군명',
+    '배출시설': '세부시설군',
+    '채취장소_x': '주소',
+    'PM10': '미세먼지(PM10)',
+    'PM2.5': '초미세먼지(PM2.5)',
+    'CO2': '이산화탄소',
+    '부유세균': '총부유세균'
+}
+data.rename(columns=rename_columns, inplace=True)
+
+# 텍스트 데이터를 숫자로 변환 및 "불검출" 처리
+columns_to_clean = ['미세먼지(PM10)', '초미세먼지(PM2.5)', '이산화탄소', '폼알데하이드', '총부유세균', '일산화탄소', '라돈', '벤젠', '톨루엔', '에틸벤젠', '자일렌', '스틸렌']
+for col in columns_to_clean:
+    if col in data.columns:
+        data[col] = data[col].replace("불검출", None)  # "불검출"을 NaN으로 처리
+        data[col] = pd.to_numeric(data[col], errors='coerce')  # 숫자로 변환 가능한 값만 남김
+
+# 접수번호의 앞 10자리를 기준으로 새로운 열 생성
+data['접수번호_10자리'] = data['접수번호'].str[:10]
+
+# 수치 데이터의 평균 계산 (접수번호의 앞 10자리를 기준으로)
+numeric_columns = ['미세먼지(PM10)', '초미세먼지(PM2.5)', '이산화탄소', '폼알데하이드', '총부유세균', '일산화탄소', '라돈']
+data_avg = data.groupby(['시설명', '접수번호_10자리']).agg({col: 'mean' for col in numeric_columns if col in data.columns}).reset_index()
+
+# 시료명 데이터 결합 및 채취지점 생성
+data['채취지점'] = data.groupby('시설명')['시료명_x'].transform(lambda x: ', '.join(x.unique()))
+
+# 채취지점 데이터와 합치기
+columns_to_drop = numeric_columns + ['미세먼지(PM10_1)', '초미세먼지(PM2.5_1)', '미세먼지(PM10_2)', '초미세먼지(PM2.5_2)', 'CO2', '이산화탄소', '일산화탄소']
+columns_to_drop = [col for col in columns_to_drop if col in data.columns]  # 실제 존재하는 열만 제거
+data_merged = data_avg.merge(data.drop(columns=columns_to_drop).drop_duplicates(['시설명', '접수번호_10자리']), on=['시설명', '접수번호_10자리'])
+
+# 불필요한 시료명_x 열 제거
+if '시료명_x' in data_merged.columns:
+    data_merged.drop(columns='시료명_x', inplace=True)
+
+# 1. 검사결과가 '적합'이면 부적합항목을 빈칸으로 설정
+data_merged.loc[data_merged['검사결과'] == '적합', '부적합항목'] = ""
+
+# 2. '시설군'에서 '기존공동주택', '신축공동주택' 제거
+data_filtered = data_merged[~data_merged['시설군'].isin(['기존공동주택', '신축공동주택'])]
+
+# 열 순서 정의 및 데이터 정렬
+desired_column_order = [
+    '시군명', '시설군', '시설명', '세부시설군', '주소', '검사결과', '부적합항목', '접수일자',
+    '확인일', '접수번호_10자리', '접수번호', '채취지점', '미세먼지(PM10)', '초미세먼지(PM2.5)',
+    '이산화탄소', '폼알데하이드', '총부유세균', '일산화탄소', '라돈', '라돈(밀폐)', '벤젠', '톨루엔',
+    '에틸벤젠', '자일렌', '스틸렌'
+]
+
+# 열 순서 변경 및 데이터 정렬
+data_sorted = data_filtered[desired_column_order].sort_values(by=['시군명', '시설군', '세부시설군', '시설명', '주소', '채취지점'])
+
+# 결과 파일로 저장 (xlsx 파일로 저장)
+output_path = '5.다중이용시설 데이터.xlsx'
+data_sorted.to_excel(output_path, index=False)
